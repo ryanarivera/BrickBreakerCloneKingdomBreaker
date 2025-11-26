@@ -6,35 +6,57 @@ public class Ball : MonoBehaviour
     Rigidbody _rigidbody;
     Vector3 _velocity;
     Renderer _renderer;
+    public int health = 3;
 
-    void Start()
+
+    void Awake()
     {
         _rigidbody = GetComponent<Rigidbody>();
         _renderer = GetComponent<Renderer>();
-        Invoke("Launch", 0.5f);
     }
 
-    void Launch()
+    public void Launch(Vector3 direction)
     {
-        _rigidbody.linearVelocity = Vector3.down * _speed;
+        _rigidbody.linearVelocity = direction.normalized * _speed;
     }
 
     void FixedUpdate()
     {
-        // Ensure constant speed
         _rigidbody.linearVelocity = _rigidbody.linearVelocity.normalized * _speed;
         _velocity = _rigidbody.linearVelocity;
 
         if (!_renderer.isVisible)
         {
-            GameManager.Instance.Balls--;
+            // Ball just dies, no ammo refund
             Destroy(gameObject);
         }
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        // Bounce
+        // Damage only when hitting a brick
+        if (collision.gameObject.CompareTag("Brick"))
+        {
+            health--;
+            if (health <= 0)
+            {
+                // Ball "dies" from losing health
+                Destroy(gameObject);
+                return;
+            }
+        }
+
+        // Still bounce off whatever it hit
         _rigidbody.linearVelocity = Vector3.Reflect(_velocity, collision.contacts[0].normal);
+    }
+
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("ReturnWall"))
+        {
+            // return to player immediately
+            GameManager.Instance.ReturnBallToPlayer(this.gameObject);
+        }
     }
 }

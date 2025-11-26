@@ -26,6 +26,10 @@ public class GameManager : MonoBehaviour
     State _state;
     GameObject _currentBall;
     GameObject _currentLevel;
+    GameObject playerInstance;
+
+    public State CurrentState => _state; // --- Expose current game state ---
+
     bool _isSwitchingState;
 
     private int _score;
@@ -67,6 +71,10 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         Instance = this;
+
+        //playerInstance = Instantiate(playerPrefab);  // <-- create once
+        //DontDestroyOnLoad(playerInstance);           // optional but recommended
+
         SwitchState(State.MENU);
         //PlayerPrefs.DeleteKey("highscore"); // uncomment and start game to reset high score
     }
@@ -95,6 +103,12 @@ public class GameManager : MonoBehaviour
                 Cursor.visible = true;
                 highscoreText.text = "HIGHSCORE: " + PlayerPrefs.GetInt("highscore");
                 panelMenu.SetActive(true);
+
+                // --- NEW: Clean scene when entering menu ---
+                DestroyAllBalls();
+                if (playerInstance != null) Destroy(playerInstance);
+                if (_currentLevel != null) Destroy(_currentLevel);
+
                 break;
             case State.INIT:
                 Cursor.visible = false;
@@ -102,19 +116,23 @@ public class GameManager : MonoBehaviour
                 Score = 0;
                 Level = 0;
                 Balls = 3;
+                DestroyAllBalls();
                 if (_currentLevel != null)
                 {
                     Destroy(_currentLevel);
                 }
-                Instantiate(playerPrefab);
+                playerInstance = Instantiate(playerPrefab, new Vector3(0, -17, 0), Quaternion.identity);
                 SwitchState(State.LOADLEVEL);
                 break;
             case State.PLAY:
                 break;
             case State.LEVELCOMPLETED:
-                Destroy(_currentBall);
+                DestroyAllBalls();  // ← NEW
                 Destroy(_currentLevel);
                 Level++;
+
+                Balls = 3; // Or whatever starting amount you want each level
+
                 panelLevelCompleted.SetActive(true);
                 SwitchState(State.LOADLEVEL, 2f);
                 break;
@@ -135,6 +153,10 @@ public class GameManager : MonoBehaviour
                     PlayerPrefs.SetInt("highscore", Score);
                 }
                 panelGameOver.SetActive(true);
+
+                // --- NEW: Clean balls & player on game over ---
+                DestroyAllBalls();
+                if (playerInstance != null) Destroy(playerInstance);
                 break;
         }
     }
@@ -148,16 +170,9 @@ public class GameManager : MonoBehaviour
             case State.INIT:
                 break;
             case State.PLAY:
-                if (_currentBall == null)
+                if (Balls < 0)
                 {
-                    if (Balls > 0)
-                    {
-                        _currentBall = Instantiate(ballPrefab);
-                    }
-                    else
-                    {
-                        SwitchState(State.GAMEOVER);
-                    }
+                    SwitchState(State.GAMEOVER);
                 }
                 if (_currentLevel != null && _currentLevel.transform.childCount == 0 && !_isSwitchingState)
                 {
@@ -173,6 +188,12 @@ public class GameManager : MonoBehaviour
                 bool anyMouse = Mouse.current != null && (Mouse.current.leftButton.wasPressedThisFrame || Mouse.current.rightButton.wasPressedThisFrame);
                 if (anyKey || anyMouse)
                 {
+                    DestroyAllBalls();   // NEW — remove leftover balls from the last game
+                    Balls = 3;           // NEW — reset ammo so fresh menu state is clean
+
+                    if (_currentLevel != null)
+                    Destroy(_currentLevel);  // optional but clean
+
                     SwitchState(State.MENU);
                 }
                 break;
@@ -200,5 +221,21 @@ public class GameManager : MonoBehaviour
                 panelGameOver.SetActive(false);
                 break;
         }
+    }
+
+    public void ReturnBallToPlayer(GameObject ball)
+    {
+        // Get that ammo back
+        Balls++;
+
+        // Remove the ball from the world
+        Destroy(ball);
+    }
+
+    public void DestroyAllBalls()
+    {
+        Ball[] balls = FindObjectsByType<Ball>(FindObjectsSortMode.None);
+        foreach (var b in balls)
+            Destroy(b.gameObject);
     }
 }
