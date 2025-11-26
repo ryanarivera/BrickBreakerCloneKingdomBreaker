@@ -13,9 +13,9 @@ GameObject:
   - component: {fileID: 3624296890015301011}
   - component: {fileID: 9143101365543250011}
   - component: {fileID: 4373085157013779815}
-  - component: {fileID: 3768870741571308506}
-  m_Layer: 0
-  m_Name: Ball
+  - component: {fileID: 7029365811493608310}
+  m_Layer: 8
+  m_Name: PlayerBall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -140,7 +140,7 @@ Rigidbody:
   m_Interpolate: 1
   m_Constraints: 8
   m_CollisionDetection: 1
---- !u!114 &3768870741571308506
+--- !u!114 &7029365811493608310
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -149,7 +149,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 9121216454984553357}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4b6ad9907fbe16b42ae85690d3504a55, type: 3}
+  m_Script: {fileID: 11500000, guid: 04b845da1408e1c4292c26e7bd6223a0, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Ball
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerBall
+  speed: 20
   health: 10

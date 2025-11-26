@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 public class PlayerShooter : MonoBehaviour
 {
     public Transform shootPoint;      // empty object at center of paddle
-    public GameObject ballPrefab;
+    public GameObject playerBallPrefab;
     public LineRenderer aimLine;
 
     public float aimAngle = 90f;      // straight up
@@ -57,15 +57,16 @@ public class PlayerShooter : MonoBehaviour
 
     void ShootBall()
     {
-        // No ammo = don’t shoot
         if (GameManager.Instance.Balls <= 0)
             return;
 
         Vector3 dir = AngleToDirection(aimAngle);
 
-        GameObject ball = Instantiate(ballPrefab, shootPoint.position, Quaternion.identity);
+        // spawn player ball
+        GameObject ball = Instantiate(playerBallPrefab, shootPoint.position, Quaternion.identity);
 
-        ball.GetComponent<Ball>().Launch(dir);
+        // Launch using PlayerBall script
+        ball.GetComponent<PlayerBall>().Launch(dir);
 
         // Spend one ammo
         GameManager.Instance.Balls--;

@@ -15,6 +15,11 @@ public class Ball : MonoBehaviour
     {
         _rigidbody = GetComponent<Rigidbody>();
         _renderer = GetComponent<Renderer>();
+
+        if (isEnemyBall)
+        {
+            health = 1;  // force 1 HP on enemy balls
+        }
     }
 
     public void Launch(Vector3 direction)
@@ -36,7 +41,24 @@ public class Ball : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        // ONLY PLAYER BALLS TAKE DAMAGE
+        Ball otherBall = collision.gameObject.GetComponent<Ball>();
+
+        // PLAYER BALL ↔ ENEMY BALL DAMAGE EACH OTHER
+        if (otherBall != null)
+        {
+            if (isEnemyBall != otherBall.isEnemyBall) // different factions
+            {
+                health--;
+                otherBall.health--;
+
+                if (health <= 0) Destroy(gameObject);
+                if (otherBall.health <= 0) Destroy(otherBall.gameObject);
+
+                return;
+            }
+        }
+
+        // PLAYER BALL TAKES DAMAGE FROM BRICK
         if (!isEnemyBall && collision.gameObject.CompareTag("Brick"))
         {
             health--;
@@ -50,6 +72,7 @@ public class Ball : MonoBehaviour
         // bounce on collision
         _rigidbody.linearVelocity = Vector3.Reflect(_velocity, collision.contacts[0].normal);
     }
+
 
     private void OnTriggerEnter(Collider other)
     {
@@ -72,6 +95,7 @@ public class Ball : MonoBehaviour
         {
             GameManager.Instance.Balls++; // ammo reward
             Destroy(gameObject);
+            return;
         }
     }
 }

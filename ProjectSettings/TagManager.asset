@@ -13,11 +13,11 @@ TagManager:
   - 
   - Water
   - UI
-  - 
-  - 
-  - 
-  - 
-  - 
+  - EnemyBall
+  - Brick
+  - PlayerBall
+  - Player
+  - ReturnWall
   - 
   - 
   - 

@@ -113,6 +113,10 @@ public class GameManager : MonoBehaviour
                 Score = 0;
                 Level = 0;
                 Balls = 3;
+
+                // reset return wall health here
+                FindAnyObjectByType<ReturnWall>().currentHealth = FindAnyObjectByType<ReturnWall>().maxHealth;
+
                 DestroyAllBalls();
                 if (_currentLevel != null)
                 {
@@ -124,11 +128,10 @@ public class GameManager : MonoBehaviour
             case State.PLAY:
                 break;
             case State.LEVELCOMPLETED:
-                DestroyAllBalls();  // ← NEW
+                RefundSurvivingBalls();
+                DestroyAllEnemyBalls();
                 Destroy(_currentLevel);
                 Level++;
-
-                Balls = 3; // Or whatever starting amount you want each level
 
                 panelLevelCompleted.SetActive(true);
                 SwitchState(State.LOADLEVEL, 2f);
@@ -227,8 +230,31 @@ public class GameManager : MonoBehaviour
 
     public void DestroyAllBalls()
     {
-        Ball[] balls = FindObjectsByType<Ball>(FindObjectsSortMode.None);
-        foreach (var b in balls)
+        PlayerBall[] playerBalls = FindObjectsByType<PlayerBall>(FindObjectsSortMode.None);
+        foreach (var b in playerBalls)
             Destroy(b.gameObject);
+
+        EnemyBall[] enemyBalls = FindObjectsByType<EnemyBall>(FindObjectsSortMode.None);
+        foreach (var b in enemyBalls)
+            Destroy(b.gameObject);
+    }
+
+    private void RefundSurvivingBalls()
+    {
+        PlayerBall[] balls = FindObjectsByType<PlayerBall>(FindObjectsSortMode.None);
+        foreach (var b in balls)
+        {
+            Balls++;                // refund to player
+            Destroy(b.gameObject);  // remove the ball
+        }
+    }
+
+    private void DestroyAllEnemyBalls()
+    {
+        EnemyBall[] enemyBalls = FindObjectsByType<EnemyBall>(FindObjectsSortMode.None);
+        foreach (var b in enemyBalls)
+        {
+            Destroy(b.gameObject);
+        }
     }
 }
