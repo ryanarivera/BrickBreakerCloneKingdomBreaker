@@ -6,8 +6,10 @@ public class Ball : MonoBehaviour
     Rigidbody _rigidbody;
     Vector3 _velocity;
     Renderer _renderer;
-    public int health = 3;
 
+    public int health = 3;
+    public bool isEnemyBall = false;
+    public int damageToReturnWall = 1;
 
     void Awake()
     {
@@ -25,38 +27,51 @@ public class Ball : MonoBehaviour
         _rigidbody.linearVelocity = _rigidbody.linearVelocity.normalized * _speed;
         _velocity = _rigidbody.linearVelocity;
 
+        // enemy balls dying off-screen don't refund ammo
         if (!_renderer.isVisible)
         {
-            // Ball just dies, no ammo refund
             Destroy(gameObject);
         }
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        // Damage only when hitting a brick
-        if (collision.gameObject.CompareTag("Brick"))
+        // ONLY PLAYER BALLS TAKE DAMAGE
+        if (!isEnemyBall && collision.gameObject.CompareTag("Brick"))
         {
             health--;
             if (health <= 0)
             {
-                // Ball "dies" from losing health
                 Destroy(gameObject);
                 return;
             }
         }
 
-        // Still bounce off whatever it hit
+        // bounce on collision
         _rigidbody.linearVelocity = Vector3.Reflect(_velocity, collision.contacts[0].normal);
     }
 
-
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("ReturnWall"))
+        // PLAYER BALL RETURNS AMMO
+        if (!isEnemyBall && other.CompareTag("ReturnWall"))
         {
-            // return to player immediately
             GameManager.Instance.ReturnBallToPlayer(this.gameObject);
+            return;
+        }
+
+        // ENEMY BALL DAMAGES RETURN WALL
+        if (isEnemyBall && other.CompareTag("ReturnWall"))
+        {
+            other.GetComponent<ReturnWall>().TakeDamage(damageToReturnWall);
+            Destroy(gameObject);
+        }
+
+        // PLAYER CAN CATCH ENEMY BALLS
+        if (isEnemyBall && other.CompareTag("Player"))
+        {
+            GameManager.Instance.Balls++; // ammo reward
+            Destroy(gameObject);
         }
     }
 }

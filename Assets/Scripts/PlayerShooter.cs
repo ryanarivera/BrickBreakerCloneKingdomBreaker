@@ -29,10 +29,10 @@ public class PlayerShooter : MonoBehaviour
 
     void HandleAiming()
     {
-        if (Keyboard.current.aKey.isPressed)
+        if (Keyboard.current.qKey.isPressed)
             aimAngle += rotateSpeed * Time.deltaTime;
 
-        if (Keyboard.current.dKey.isPressed)
+        if (Keyboard.current.eKey.isPressed)
             aimAngle -= rotateSpeed * Time.deltaTime;
 
         aimAngle = Mathf.Clamp(aimAngle, 30f, 150f);  // prevent sideways shots

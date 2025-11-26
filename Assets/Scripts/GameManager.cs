@@ -72,9 +72,6 @@ public class GameManager : MonoBehaviour
     {
         Instance = this;
 
-        //playerInstance = Instantiate(playerPrefab);  // <-- create once
-        //DontDestroyOnLoad(playerInstance);           // optional but recommended
-
         SwitchState(State.MENU);
         //PlayerPrefs.DeleteKey("highscore"); // uncomment and start game to reset high score
     }
@@ -170,10 +167,6 @@ public class GameManager : MonoBehaviour
             case State.INIT:
                 break;
             case State.PLAY:
-                if (Balls < 0)
-                {
-                    SwitchState(State.GAMEOVER);
-                }
                 if (_currentLevel != null && _currentLevel.transform.childCount == 0 && !_isSwitchingState)
                 {
                     SwitchState(State.LEVELCOMPLETED);

@@ -1,29 +1,37 @@
 using UnityEngine;
-using UnityEngine.InputSystem; // <-- needed for Mouse.current
+using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(Rigidbody))]
 public class Player : MonoBehaviour
 {
-    Rigidbody _rigidbody;
-    bool _mouseInitialized = false;
+    public float moveSpeed = 12f;
+    public float clampLeftX = -30.5f;   // adjust to your wall positions
+    public float clampRightX = 30.5f;
 
-    
+    private Rigidbody _rb;
+
     void Start()
     {
-        _rigidbody = GetComponent<Rigidbody>();
+        _rb = GetComponent<Rigidbody>();
     }
 
     void FixedUpdate()
     {
-        Vector2 mousePos = Mouse.current.position.ReadValue();
+        float dir = 0f;
 
-        // Mouse not ready yet (frame 0)
-        if (mousePos == Vector2.zero && !_mouseInitialized)
-            return;
+        if (Keyboard.current.aKey.isPressed)
+            dir = -1f;
+        else if (Keyboard.current.dKey.isPressed)
+            dir = 1f;
 
-        _mouseInitialized = true;
+        Vector3 vel = new Vector3(dir * moveSpeed, 0, 0);
+        _rb.MovePosition(transform.position + vel * Time.fixedDeltaTime);
 
-        Vector3 worldPos = Camera.main.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, 50));
-
-        _rigidbody.MovePosition(new Vector3(worldPos.x, -17, 0));
+        // clamp so the paddle never leaves screen
+        transform.position = new Vector3(
+            Mathf.Clamp(transform.position.x, clampLeftX, clampRightX),
+            transform.position.y,
+            transform.position.z
+        );
     }
 }
