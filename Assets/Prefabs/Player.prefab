@@ -233,9 +233,22 @@ MonoBehaviour:
   maxDots: 100
   dotSpacing: 0.5
   maxBounces: 2
+  startScale: 0.35
+  endScale: 0.05
+  startAlpha: 1
+  endAlpha: 0.15
   trajectoryMask:
     serializedVersion: 2
     m_Bits: 4224
+  currentFireMode: 0
+  burstCount: 5
+  burstDelay: 0.05
+  lineCount: 5
+  lineWidth: 4
+  circleCount: 12
+  circleRadius: 1
+  triangleCount: 6
+  triangleSpacing: 0.5
 --- !u!120 &7150531946102173490
 LineRenderer:
   serializedVersion: 2

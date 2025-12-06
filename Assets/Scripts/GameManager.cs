@@ -128,6 +128,7 @@ public class GameManager : MonoBehaviour
                 Balls = 3;
                 Coins = 0;
 
+                ballGenerator.ResetGenerator(); // remove to keep upgrades after each run like a roguelite
                 ballGenerator.enabled = true;
 
                 // reset return wall health here
@@ -144,6 +145,7 @@ public class GameManager : MonoBehaviour
             case State.PLAY:
                 break;
             case State.LEVELCOMPLETED:
+                ballGenerator.ResetProgress();
                 RefundSurvivingBalls();
                 DestroyAllEnemyBalls();
                 Destroy(_currentLevel);

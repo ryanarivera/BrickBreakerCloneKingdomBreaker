@@ -1,5 +1,15 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections;
+
+public enum FireMode
+{
+    Single,
+    Burst,
+    HorizontalLine,
+    Circle,
+    Triangle
+}
 
 public class PlayerShooter : MonoBehaviour
 {
@@ -34,6 +44,23 @@ public class PlayerShooter : MonoBehaviour
     private Vector3 currentAimDirection;
     private GameObject[] dots;
 
+    [Header("Fire Mode Settings")]
+    public FireMode currentFireMode = FireMode.Single;
+
+    public int burstCount = 5;        // number of balls in burst
+    public float burstDelay = 0.05f;  // time between shots in burst
+
+    public int lineCount = 5;         // number of balls in horizontal line
+    public float lineWidth = 4f;      // horizontal spread width
+
+    public int circleCount = 12;      // number of balls in circle
+    public float circleRadius = 1f;   // circle radius
+
+    public int triangleCount = 6;     // balls per triangle layer
+    public float triangleSpacing = 0.5f;
+
+    private bool canShoot = true;
+
     void Start()
     {
         // Create dot pool
@@ -42,6 +69,13 @@ public class PlayerShooter : MonoBehaviour
         {
             dots[i] = Instantiate(trajectoryDotPrefab);
             dots[i].SetActive(false);
+        }
+
+        // ---- REGISTER WITH UI BUTTONS ----
+        FireModeButton[] buttons = FindObjectsByType<FireModeButton>(FindObjectsSortMode.None);
+        foreach (var b in buttons)
+        {
+            b.SetShooter(this);
         }
     }
 
@@ -201,8 +235,8 @@ public class PlayerShooter : MonoBehaviour
 
     void HandleShoot()
     {
-        if (Keyboard.current.spaceKey.wasPressedThisFrame)
-            ShootBall();
+        if (Keyboard.current.spaceKey.wasPressedThisFrame && canShoot)
+            FireBasedOnMode();
     }
 
     void ShootBall()
@@ -214,5 +248,146 @@ public class PlayerShooter : MonoBehaviour
         ball.GetComponent<PlayerBall>().Launch(currentAimDirection);
 
         GameManager.Instance.Balls--;
+    }
+
+    // ------------------------------ SHOOTING FORMATIONS ------------------------------------
+
+    public void SetFireMode(int modeIndex)
+    {
+        currentFireMode = (FireMode)modeIndex;
+    }
+
+    void FireBasedOnMode()
+    {
+        switch (currentFireMode)
+        {
+            case FireMode.Single:
+                FireSingle();
+                break;
+
+            case FireMode.Burst:
+                StartCoroutine(FireBurst());
+                break;
+
+            case FireMode.HorizontalLine:
+                FireHorizontalLine();
+                break;
+
+            case FireMode.Circle:
+                FireCircle();
+                break;
+
+            case FireMode.Triangle:
+                FireTriangle();
+                break;
+        }
+    }
+
+    void FireSingle()
+    {
+        if (GameManager.Instance.Balls <= 0) return;
+
+        SpawnBall(shootPoint.position, currentAimDirection);
+        GameManager.Instance.Balls--;
+    }
+
+    IEnumerator FireBurst()
+    {
+        canShoot = false;
+
+        int shots = Mathf.Min(burstCount, GameManager.Instance.Balls);
+
+        for (int i = 0; i < shots; i++)
+        {
+            SpawnBall(shootPoint.position, currentAimDirection);
+            GameManager.Instance.Balls--;
+
+            yield return new WaitForSeconds(burstDelay);
+        }
+
+        canShoot = true;
+    }
+
+    void FireHorizontalLine()
+    {
+        int count = Mathf.Min(lineCount, GameManager.Instance.Balls);
+        float half = (count - 1) / 2f;
+
+        for (int i = 0; i < count; i++)
+        {
+            float offset = (i - half) * (lineWidth / (lineCount - 1));
+            Vector3 spawnPos = shootPoint.position + new Vector3(offset, 0, 0);
+
+            SpawnBall(spawnPos, currentAimDirection);
+        }
+
+        GameManager.Instance.Balls -= count;
+    }
+
+    void FireCircle()
+    {
+        // Maximum balls the player has available
+        int available = GameManager.Instance.Balls;
+        int used = 0;
+
+        float spacing = 0.4f; // distance between balls inside the filled circle
+
+        // Loop through a square grid centered at shootPoint and fill only circle positions
+        for (float x = -circleRadius; x <= circleRadius; x += spacing)
+        {
+            for (float y = -circleRadius; y <= circleRadius; y += spacing)
+            {
+                if (used >= available)
+                    break;
+
+                // Keep only points inside the circle
+                if (x * x + y * y <= circleRadius * circleRadius)
+                {
+                    Vector3 offset = new Vector3(x, y, 0);
+                    SpawnBall(shootPoint.position + offset, currentAimDirection);
+                    used++;
+                }
+            }
+
+            if (used >= available)
+                break;
+        }
+
+        GameManager.Instance.Balls -= used;
+    }
+
+    void FireTriangle()
+    {
+        int available = GameManager.Instance.Balls;
+        int perRow = triangleCount;
+        int used = 0;
+
+        for (int row = 0; row < perRow; row++)
+        {
+            int ballsInRow = row + 1;
+
+            for (int i = 0; i < ballsInRow; i++)
+            {
+                if (used >= available) break;
+
+                float offsetX = (i - ballsInRow / 2f) * triangleSpacing;
+                float offsetY = row * triangleSpacing;
+
+                Vector3 spawn = shootPoint.position + new Vector3(offsetX, offsetY, 0);
+                SpawnBall(spawn, currentAimDirection);
+
+                used++;
+            }
+
+            if (used >= available) break;
+        }
+
+        GameManager.Instance.Balls -= used;
+    }
+
+    void SpawnBall(Vector3 pos, Vector3 direction)
+    {
+        var ball = Instantiate(playerBallPrefab, pos, Quaternion.identity);
+        ball.GetComponent<PlayerBall>().Launch(direction.normalized);
     }
 }

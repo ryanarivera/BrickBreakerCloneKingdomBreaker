@@ -67,6 +67,23 @@ public class BallGenerator : MonoBehaviour
     void UpdateCostText()
     {
         int cost = baseUpgradeCost + (_currentUpgrade * upgradeCostIncrease);
-        costText.text = "UPGRADE (" + cost + ")";
+        costText.text = "UPGRADE: " + cost + "$";
+    }
+
+    public void ResetGenerator()
+    {
+        _currentUpgrade = 0;
+        _currentCooldown = baseGenerateTime;
+        _timer = 0f;
+
+        UpdateCostText();
+        fillBar.fillAmount = 0f;
+    }
+
+    public void ResetProgress()
+    {
+        _timer = 0f;
+        if (fillBar != null)
+            fillBar.fillAmount = 0f;
     }
 }
