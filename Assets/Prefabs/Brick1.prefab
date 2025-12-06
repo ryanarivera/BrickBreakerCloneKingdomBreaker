@@ -105,6 +105,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Brick
   hits: 1
   points: 100
+  minCoins: 1
+  maxCoins: 3
+  coinPrefab: {fileID: 2058730497782672892, guid: fd47e51ad65c89a4a8532e2c4988e869, type: 3}
   rotator: {x: 60, y: 0, z: 0}
   hitMaterial: {fileID: 2100000, guid: d4e615c17449dca4eb150161134f6345, type: 2}
 --- !u!65 &8134209009623923764

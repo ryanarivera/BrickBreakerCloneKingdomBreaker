@@ -12,6 +12,9 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI ballsText;
     public TextMeshProUGUI levelText;
     public TextMeshProUGUI highscoreText;
+    public TextMeshProUGUI coinsText;   // assign in inspector
+
+    public BallGenerator ballGenerator;
 
     public GameObject panelMenu;
     public GameObject panelPlay;
@@ -62,6 +65,16 @@ public class GameManager : MonoBehaviour
         }
     }
     
+    private int _coins;
+    public int Coins
+    {
+        get => _coins;
+        set
+        {
+            _coins = value;
+            coinsText.text = "COINS: " + _coins;
+        }
+    }
 
     public void PlayClicked()
     {
@@ -108,11 +121,14 @@ public class GameManager : MonoBehaviour
 
                 break;
             case State.INIT:
-                Cursor.visible = false;
+                Cursor.visible = true;
                 panelPlay.SetActive(true);
                 Score = 0;
                 Level = 0;
                 Balls = 3;
+                Coins = 0;
+
+                ballGenerator.enabled = true;
 
                 // reset return wall health here
                 FindAnyObjectByType<ReturnWall>().currentHealth = FindAnyObjectByType<ReturnWall>().maxHealth;
@@ -153,6 +169,8 @@ public class GameManager : MonoBehaviour
                     PlayerPrefs.SetInt("highscore", Score);
                 }
                 panelGameOver.SetActive(true);
+
+                ballGenerator.enabled = false;
 
                 // --- NEW: Clean balls & player on game over ---
                 DestroyAllBalls();
@@ -256,5 +274,10 @@ public class GameManager : MonoBehaviour
         {
             Destroy(b.gameObject);
         }
+    }
+
+    public void AddCoins(int amount)
+    {
+        Coins += amount;
     }
 }

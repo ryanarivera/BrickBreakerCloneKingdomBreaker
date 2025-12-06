@@ -227,9 +227,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerShooter
   shootPoint: {fileID: 9084277659132170153}
   playerBallPrefab: {fileID: 9121216454984553357, guid: 4d4e43807052c4b40b90d7caf2773351, type: 3}
-  aimLine: {fileID: 7150531946102173490}
-  aimAngle: 90
-  rotateSpeed: 120
+  trajectoryDotPrefab: {fileID: 8188743841338515396, guid: 5bf7e85c82097124880de624e5530bd6, type: 3}
+  minAngle: 30
+  maxAngle: 150
+  maxDots: 100
+  dotSpacing: 0.5
+  maxBounces: 2
+  trajectoryMask:
+    serializedVersion: 2
+    m_Bits: 4224
 --- !u!120 &7150531946102173490
 LineRenderer:
   serializedVersion: 2
