@@ -71,7 +71,7 @@ GameObject:
   - component: {fileID: 7150531946102173490}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -245,7 +245,7 @@ MonoBehaviour:
   burstDelay: 0.05
   lineCount: 5
   lineWidth: 4
-  circleCount: 12
+  circleCount: 34
   circleRadius: 1
   triangleCount: 6
   triangleSpacing: 0.5

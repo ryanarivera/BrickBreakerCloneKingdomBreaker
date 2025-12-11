@@ -125,7 +125,7 @@ public class GameManager : MonoBehaviour
                 panelPlay.SetActive(true);
                 Score = 0;
                 Level = 0;
-                Balls = 3;
+                Balls = 100;
                 Coins = 0;
 
                 ballGenerator.ResetGenerator(); // remove to keep upgrades after each run like a roguelite

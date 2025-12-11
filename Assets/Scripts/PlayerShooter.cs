@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections;
+using System.Collections.Generic;
 
 public enum FireMode
 {
@@ -54,7 +55,7 @@ public class PlayerShooter : MonoBehaviour
     public float lineWidth = 4f;      // horizontal spread width
 
     public int circleCount = 12;      // number of balls in circle
-    public float circleRadius = 1f;   // circle radius
+    public float circleRadius = 2f;   // circle radius
 
     public int triangleCount = 6;     // balls per triangle layer
     public float triangleSpacing = 0.5f;
@@ -326,31 +327,114 @@ public class PlayerShooter : MonoBehaviour
 
     void FireCircle()
     {
-        // Maximum balls the player has available
-        int available = GameManager.Instance.Balls;
-        int used = 0;
+        int count = Mathf.Min(circleCount, GameManager.Instance.Balls);
+        if (count <= 0) return;
 
-        float spacing = 0.4f; // distance between balls inside the filled circle
+        // Ball collider radius
+        float ballRadius = playerBallPrefab.GetComponent<SphereCollider>().radius * playerBallPrefab.transform.localScale.x;
 
-        // Loop through a square grid centered at shootPoint and fill only circle positions
-        for (float x = -circleRadius; x <= circleRadius; x += spacing)
+        float spacing = ballRadius * 2.1f; // soft minimum
+        float relaxSpacing = ballRadius * 2.0f; // target minimum during relaxation
+
+        // Lift above the player
+        float verticalOffset = circleRadius + 0.3f;
+        Vector3 center = shootPoint.position + new Vector3(0, verticalOffset, 0);
+
+        // ------------- BUILD RINGS (CONTINUOUS OPTION B) ----------------
+        List<Vector3> points = new List<Vector3>();
+        int remaining = count;
+        int layer = 0;
+
+        while (remaining > 0)
         {
-            for (float y = -circleRadius; y <= circleRadius; y += spacing)
-            {
-                if (used >= available)
-                    break;
+            float ringRadius = layer * spacing * 0.9f; 
+            if (layer == 0) ringRadius = 0;
 
-                // Keep only points inside the circle
-                if (x * x + y * y <= circleRadius * circleRadius)
+            int capacity;
+
+            if (layer == 0)
+                capacity = 1; // center
+            else
+            {
+                float circumference = 2f * Mathf.PI * ringRadius;
+                capacity = Mathf.Max(6, Mathf.FloorToInt(circumference / spacing));
+            }
+
+            int take = Mathf.Min(remaining, capacity);
+
+            if (layer == 0)
+            {
+                points.Add(center);
+            }
+            else
+            {
+                float step = 2f * Mathf.PI / take;
+                for (int i = 0; i < take; i++)
                 {
-                    Vector3 offset = new Vector3(x, y, 0);
-                    SpawnBall(shootPoint.position + offset, currentAimDirection);
-                    used++;
+                    float ang = i * step;
+                    float x = Mathf.Cos(ang) * ringRadius;
+                    float y = Mathf.Sin(ang) * ringRadius;
+                    points.Add(center + new Vector3(x, y, 0));
                 }
             }
 
-            if (used >= available)
-                break;
+            remaining -= take;
+            layer++;
+        }
+
+        // ------------- BUBBLE RELAXATION ----------------
+        // pushes points apart and keeps shape circular
+        int iterations = 12;
+        float pullStrength = 0.1f;
+
+        for (int k = 0; k < iterations; k++)
+        {
+            // 1) push apart if too close
+            for (int i = 0; i < points.Count; i++)
+            {
+                for (int j = i + 1; j < points.Count; j++)
+                {
+                    Vector3 a = points[i];
+                    Vector3 b = points[j];
+
+                    Vector3 diff = b - a;
+                    float dist = diff.magnitude;
+
+                    if (dist < relaxSpacing)
+                    {
+                        float push = (relaxSpacing - dist) * 0.5f;
+                        Vector3 dir = diff.normalized;
+
+                        points[i] -= dir * push;
+                        points[j] += dir * push;
+                    }
+                }
+            }
+
+            // 2) pull points toward circle center to maintain circular shape
+            for (int i = 0; i < points.Count; i++)
+            {
+                Vector3 dir = (points[i] - center);
+                float dist = dir.magnitude;
+
+                float idealDist = dist; 
+                if (dist > spacing * 0.5f)
+                    idealDist = dist - pullStrength;
+                else
+                    idealDist = dist + pullStrength;
+
+                if (dist > 0.001f)
+                    points[i] = center + dir.normalized * idealDist;
+            }
+        }
+
+        // ------------- SPAWN BALLS --------------------
+        int used = 0;
+
+        foreach (var p in points)
+        {
+            SpawnBall(p, currentAimDirection);
+            used++;
         }
 
         GameManager.Instance.Balls -= used;

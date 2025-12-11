@@ -8,10 +8,12 @@ public class EnemyBall : MonoBehaviour
 
     private Rigidbody rb;
     private Vector3 lastVel;
+    private Material mat;
 
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        mat = GetComponent<Renderer>().material;
     }
 
     public void Launch(Vector3 direction)
@@ -33,6 +35,9 @@ public class EnemyBall : MonoBehaviour
         {
             pb.health--;
             health--;
+
+            pb.UpdateColor();
+            UpdateColor();
 
             if (pb.health <= 0) Destroy(pb.gameObject);
             if (health <= 0) Destroy(gameObject);
@@ -57,5 +62,15 @@ public class EnemyBall : MonoBehaviour
             GameManager.Instance.Balls++;
             Destroy(gameObject);
         }
+    }
+
+    // COLOR UPDATE
+    public void UpdateColor()
+    {
+        float t = 1f - (float)health / 1f; // enemy maxHealth = 1 for now
+        Color bright = new Color(1f, 0.3f, 0.3f);
+        Color dark   = new Color(0.3f, 0f, 0f);
+
+        mat.color = Color.Lerp(bright, dark, t);
     }
 }
