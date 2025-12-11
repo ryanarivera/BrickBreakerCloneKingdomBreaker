@@ -17,6 +17,14 @@ public class PlayerBall : MonoBehaviour
 
         // Make sure we have our own material instance
         mat = GetComponent<Renderer>().material;
+
+        // Register this ball
+        PlayerBallRegistry.Register(this);
+    }
+
+    void OnDestroy()
+    {
+        PlayerBallRegistry.Unregister(this); // NEW — unregister on destroy
     }
 
     public void Launch(Vector3 direction)
@@ -94,6 +102,8 @@ public class PlayerBall : MonoBehaviour
         // Return to player for ammo
         if (other.CompareTag("ReturnWall"))
         {
+             // Prevent phantom balls in registry
+            PlayerBallRegistry.Unregister(this);
             GameManager.Instance.ReturnBallToPlayer(gameObject);
         }
     }

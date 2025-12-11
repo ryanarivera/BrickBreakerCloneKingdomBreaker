@@ -6,6 +6,8 @@ TagManager:
   tags:
   - ReturnWall
   - Brick
+  - Coin
+  - PlayerBall
   layers:
   - Default
   - TransparentFX

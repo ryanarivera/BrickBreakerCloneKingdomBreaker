@@ -116,6 +116,7 @@ public class GameManager : MonoBehaviour
 
                 // --- NEW: Clean scene when entering menu ---
                 DestroyAllBalls();
+                DestroyAllCoins();
                 if (playerInstance != null) Destroy(playerInstance);
                 if (_currentLevel != null) Destroy(_currentLevel);
 
@@ -135,6 +136,7 @@ public class GameManager : MonoBehaviour
                 FindAnyObjectByType<ReturnWall>().currentHealth = FindAnyObjectByType<ReturnWall>().maxHealth;
 
                 DestroyAllBalls();
+                DestroyAllCoins();
                 if (_currentLevel != null)
                 {
                     Destroy(_currentLevel);
@@ -148,6 +150,7 @@ public class GameManager : MonoBehaviour
                 ballGenerator.ResetProgress();
                 RefundSurvivingBalls();
                 DestroyAllEnemyBalls();
+                //DestroyAllCoins(); // *** I AM NOT SURE IF I WANT TO DESTROY LEFT OVER COINS INBETWEEN LEVELS YET ***
                 Destroy(_currentLevel);
                 Level++;
 
@@ -170,12 +173,13 @@ public class GameManager : MonoBehaviour
                 {
                     PlayerPrefs.SetInt("highscore", Score);
                 }
-                panelGameOver.SetActive(true);
 
+                panelGameOver.SetActive(true);
                 ballGenerator.enabled = false;
 
-                // --- NEW: Clean balls & player on game over ---
+                // --- NEW: Clean balls, coins & player on game over ---
                 DestroyAllBalls();
+                DestroyAllCoins();
                 if (playerInstance != null) Destroy(playerInstance);
                 break;
         }
@@ -204,8 +208,9 @@ public class GameManager : MonoBehaviour
                 bool anyMouse = Mouse.current != null && (Mouse.current.leftButton.wasPressedThisFrame || Mouse.current.rightButton.wasPressedThisFrame);
                 if (anyKey || anyMouse)
                 {
-                    DestroyAllBalls();   // NEW — remove leftover balls from the last game
-                    Balls = 3;           // NEW — reset ammo so fresh menu state is clean
+                    DestroyAllBalls();   // Remove leftover balls from the last game
+                    DestroyAllCoins();   // Remove leftover coins from the last game
+                    Balls = 3;           // Reset ammo so fresh menu state is clean
 
                     if (_currentLevel != null)
                     Destroy(_currentLevel);  // optional but clean
@@ -281,5 +286,12 @@ public class GameManager : MonoBehaviour
     public void AddCoins(int amount)
     {
         Coins += amount;
+    }
+
+    public void DestroyAllCoins()
+    {
+        CoinPickup[] coins = FindObjectsByType<CoinPickup>(FindObjectsSortMode.None);
+        foreach (var c in coins)
+            Destroy(c.gameObject);
     }
 }
